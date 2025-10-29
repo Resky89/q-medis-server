@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Resources\AntrianResource;
+use App\Http\Resources\LoketResource;
+use App\Models\Loket;
+use App\Services\DisplayService;
+
+class DisplayController extends BaseController
+{
+    public function __construct(private readonly DisplayService $service)
+    {
+    }
+
+    public function lokets()
+    {
+        return $this->success(LoketResource::collection($this->service->lokets()));
+    }
+
+    public function show(Loket $loket)
+    {
+        $data = $this->service->now($loket);
+        return $this->success([
+            'loket' => new LoketResource($data['loket']),
+            'current' => $data['current'] ? new AntrianResource($data['current']) : null,
+            'next' => $data['next'] ? new AntrianResource($data['next']) : null,
+        ]);
+    }
+}
