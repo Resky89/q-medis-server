@@ -7,14 +7,24 @@ use App\Models\Loket;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Traits\GenerateNomorAntrian;
+use App\Support\QueryFilters;
 
 class AntrianService
 {
     use GenerateNomorAntrian;
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
-        return Antrian::query()->orderByDesc('id')->paginate($perPage);
+        $query = Antrian::query();
+        QueryFilters::apply(
+            $query,
+            $params,
+            searchable: ['nomor_antrian', 'status'],
+            orderable: ['id', 'loket_id', 'nomor_antrian', 'status', 'created_at', 'updated_at', 'waktu_panggil'],
+            defaultOrderBy: 'id',
+            defaultOrderDir: 'desc'
+        );
+        return $query->paginate($perPage);
     }
 
     public function create(int $loketId): Antrian

@@ -25,12 +25,22 @@ class DisplayService
             ->where('loket_id', $loket->id)
             ->where('status', 'menunggu')
             ->orderBy('id')
-            ->first();
+            ->limit(2)
+            ->get();
 
         return [
             'loket' => $loket,
             'current' => $current,
             'next' => $next,
         ];
+    }
+
+    public function overview(): array
+    {
+        $items = [];
+        foreach ($this->lokets() as $loket) {
+            $items[] = $this->now($loket);
+        }
+        return $items;
     }
 }

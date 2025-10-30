@@ -6,6 +6,7 @@ use App\Models\JwtSession;
 use App\Models\User;
 use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTFactory;
 
 class AuthService
 {
@@ -20,10 +21,28 @@ class AuthService
 
     private function issueTokens(User $user, ?string $userAgent = null, ?string $ip = null): array
     {
-        $accessToken = JWTAuth::fromUser($user);
-        $plainRefresh = bin2hex(random_bytes(64));
-        $refreshHash = $this->hashToken($plainRefresh);
+        $claims = [
+            'uid' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role ?? null,
+            'avatar' => $user->avatar ?? null,
+        ];
+        $accessToken = JWTAuth::claims($claims)->fromUser($user);
         $expiresAt = now()->addDays((int) env('JWT_REFRESH_TTL_DAYS', 30));
+
+        // Create refresh token as JWT with custom claims (no 'sub' so it can't be used as access token)
+        $rid = (string) Str::uuid();
+        $refreshTtlMinutes = ((int) env('JWT_REFRESH_TTL_DAYS', 30)) * 24 * 60;
+        $refreshPayload = JWTFactory::customClaims([
+            'typ' => 'refresh',
+            'jti' => $rid,
+            'sub' => $user->id,
+            'uid' => $user->id,
+        ])->setTTL($refreshTtlMinutes)->make();
+        $plainRefresh = JWTAuth::encode($refreshPayload)->get();
+        // Store only a hash of the jti for revocation checks
+        $refreshHash = $this->hashToken($rid);
 
         JwtSession::create([
             'user_id' => $user->id,
@@ -56,7 +75,23 @@ class AuthService
 
     public function refresh(string $refreshToken, string $userAgent = null, string $ip = null): array|false
     {
-        $hash = $this->hashToken($refreshToken);
+        // Decode and validate refresh JWT (signature & exp)
+        try {
+            $payload = JWTAuth::setToken($refreshToken)->getPayload();
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        if (($payload['typ'] ?? null) !== 'refresh') {
+            return false;
+        }
+
+        $rid = $payload['jti'] ?? null;
+        if (! $rid) {
+            return false;
+        }
+
+        $hash = $this->hashToken($rid);
         $session = JwtSession::where('refresh_token', $hash)
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now())
@@ -71,14 +106,29 @@ class AuthService
             return false;
         }
 
-        $accessToken = JWTAuth::fromUser($user);
+        $claims = [
+            'uid' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role ?? null,
+            'avatar' => $user->avatar ?? null,
+        ];
+        $accessToken = JWTAuth::claims($claims)->fromUser($user);
 
         $session->revoked_at = now();
         $session->save();
 
-        $newPlainRefresh = bin2hex(random_bytes(64));
-        $newHash = $this->hashToken($newPlainRefresh);
+        // Issue new refresh JWT
+        $newRid = (string) Str::uuid();
         $expiresAt = now()->addDays((int) env('JWT_REFRESH_TTL_DAYS', 30));
+        $refreshTtlMinutes = ((int) env('JWT_REFRESH_TTL_DAYS', 30)) * 24 * 60;
+        $newPayload = JWTFactory::customClaims([
+            'typ' => 'refresh',
+            'jti' => $newRid,
+            'uid' => $user->id,
+        ])->setTTL($refreshTtlMinutes)->make();
+        $newPlainRefresh = JWTAuth::encode($newPayload)->get();
+        $newHash = $this->hashToken($newRid);
 
         JwtSession::create([
             'user_id' => $user->id,
@@ -105,8 +155,16 @@ class AuthService
         }
 
         if ($refreshToken) {
-            $hash = $this->hashToken($refreshToken);
-            JwtSession::where('refresh_token', $hash)->update(['revoked_at' => now()]);
+            try {
+                $payload = JWTAuth::setToken($refreshToken)->getPayload();
+                $rid = $payload['jti'] ?? null;
+                if ($rid) {
+                    $hash = $this->hashToken($rid);
+                    JwtSession::where('refresh_token', $hash)->update(['revoked_at' => now()]);
+                }
+            } catch (\Throwable $e) {
+                // ignore invalid refresh token
+            }
         }
     }
 

@@ -6,6 +6,7 @@ use App\Interfaces\LoketRepositoryInterface;
 use App\Models\Loket;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use App\Support\QueryFilters;
 
 class LoketRepository implements LoketRepositoryInterface
 {
@@ -14,9 +15,18 @@ class LoketRepository implements LoketRepositoryInterface
         return Loket::query()->orderBy('id')->get();
     }
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
-        return Loket::query()->orderBy('id')->paginate($perPage);
+        $query = Loket::query();
+        QueryFilters::apply(
+            $query,
+            $params,
+            searchable: ['nama_loket', 'kode_prefix', 'deskripsi'],
+            orderable: ['id', 'nama_loket', 'kode_prefix', 'created_at', 'updated_at'],
+            defaultOrderBy: 'id',
+            defaultOrderDir: 'asc'
+        );
+        return $query->paginate($perPage);
     }
 
     public function find(int $id): ?Loket

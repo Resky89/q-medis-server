@@ -21,7 +21,8 @@ class LoketController extends BaseController
         if ($perPage > 100) {
             $perPage = 100;
         }
-        $lokets = $this->service->paginate($perPage);
+        $params = $request->only(['search', 'order_by', 'order_dir']);
+        $lokets = $this->service->paginate($perPage, $params);
 
         return $this->success([
             'data' => LoketResource::collection($lokets->items()),

@@ -18,9 +18,9 @@ class LoketService
         return $this->repo->all();
     }
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
-        return $this->repo->paginate($perPage);
+        return $this->repo->paginate($perPage, $params);
     }
 
     public function find(int $id): ?Loket

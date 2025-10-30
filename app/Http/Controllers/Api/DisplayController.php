@@ -24,7 +24,21 @@ class DisplayController extends BaseController
         return $this->success([
             'loket' => new LoketResource($data['loket']),
             'current' => $data['current'] ? new AntrianResource($data['current']) : null,
-            'next' => $data['next'] ? new AntrianResource($data['next']) : null,
+            'next' => AntrianResource::collection($data['next']),
         ], 'display retrieved');
+    }
+
+    public function overview()
+    {
+        $items = $this->service->overview();
+        $result = [];
+        foreach ($items as $data) {
+            $result[] = [
+                'loket' => new LoketResource($data['loket']),
+                'current' => $data['current'] ? new AntrianResource($data['current']) : null,
+                'next' => AntrianResource::collection($data['next']),
+            ];
+        }
+        return $this->success($result, 'overview retrieved');
     }
 }

@@ -28,17 +28,21 @@ class AuthController extends BaseController
             return $this->error('invalid credentials', 401);
         }
 
-        $result['user'] = new UserResource($result['user']);
-        $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
+        $data = [
+            'access_token' => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+        ];
 
-        return $this->success($result, 'login success');
+        return $this->success($data, 'login success');
     }
 
+    
     public function me()
     {
         return $this->success(new UserResource(auth('api')->user()), 'profile retrieved');
     }
 
+    
     public function refresh(RefreshRequest $request)
     {
         $result = $this->authService->refresh(
@@ -51,11 +55,15 @@ class AuthController extends BaseController
             return $this->error('invalid refresh token', 401);
         }
 
-        $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
+        $data = [
+            'access_token' => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+        ];
 
-        return $this->success($result, 'token refreshed');
+        return $this->success($data, 'token refreshed');
     }
 
+    
     public function logout(RefreshRequest $request)
     {
         $this->authService->logout($request->input('refresh_token'));

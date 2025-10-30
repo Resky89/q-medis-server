@@ -6,6 +6,7 @@ use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use App\Support\QueryFilters;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -14,9 +15,18 @@ class UserRepository implements UserRepositoryInterface
         return User::query()->orderBy('id')->get();
     }
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
-        return User::query()->orderBy('id')->paginate($perPage);
+        $query = User::query();
+        QueryFilters::apply(
+            $query,
+            $params,
+            searchable: ['name', 'email', 'role'],
+            orderable: ['id', 'name', 'email', 'role', 'created_at', 'updated_at'],
+            defaultOrderBy: 'id',
+            defaultOrderDir: 'asc'
+        );
+        return $query->paginate($perPage);
     }
 
     public function find(int $id): ?User
