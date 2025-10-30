@@ -1,0 +1,257 @@
+{
+  "info": {
+    "_postman_id": "7e2f4e7b-1b34-4f7d-9f2b-7d2e7a0a9f11",
+    "name": "qmediis-backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for qmediis-backend (Laravel 12, JWT + PostgreSQL). Use the provided Environment to set base_url, credentials, and tokens."
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "email", "value": "" },
+    { "key": "password", "value": "" },
+    { "key": "jwt_token", "value": "" },
+    { "key": "refresh_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (email/password)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Authenticate with email/password. Saves access and refresh tokens to environment."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (json.access_token) pm.environment.set('jwt_token', json.access_token);",
+                  "if (json.refresh_token) pm.environment.set('refresh_token', json.refresh_token);",
+                  "if (json.user) pm.environment.set('me_id', json.user.id || '');",
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me (profile)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Access Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/auth/refresh", "host": ["{{base_url}}"], "path": ["api", "auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}" },
+            "description": "Exchange refresh token for new access and refresh tokens."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (json.access_token) pm.environment.set('jwt_token', json.access_token);",
+                  "if (json.refresh_token) pm.environment.set('refresh_token', json.refresh_token);",
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/auth/logout", "host": ["{{base_url}}"], "path": ["api", "auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}" },
+            "description": "Invalidate access token and revoke refresh token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.unset('jwt_token');",
+                  "pm.environment.unset('refresh_token');",
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Google OAuth Redirect (manual)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "text/html" } ],
+            "url": { "raw": "{{base_url}}/auth/google/redirect", "host": ["{{base_url}}"], "path": ["auth", "google", "redirect"] },
+            "description": "Starts Google OAuth. This will open a Google login page (not fully automatable in Postman)."
+          }
+        },
+        {
+          "name": "Google OAuth Callback (expects ?code&state)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" } ],
+            "url": {
+              "raw": "{{base_url}}/auth/google/callback",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "google", "callback"]
+            },
+            "description": "After successful Google login, this endpoint returns JWT access/refresh tokens. Typically called by the browser redirect, not directly."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lokets",
+      "item": [
+        {
+          "name": "List Lokets",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/lokets", "host": ["{{base_url}}"], "path": ["api", "lokets"] }
+          }
+        },
+        {
+          "name": "Create Loket",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/lokets", "host": ["{{base_url}}"], "path": ["api", "lokets"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nama_loket\": \"Loket A\",\n  \"kode_prefix\": \"A\",\n  \"deskripsi\": \"Pendaftaran\"\n}" }
+          }
+        },
+        {
+          "name": "Get Loket by ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/lokets/1", "host": ["{{base_url}}"], "path": ["api", "lokets", "1"] }
+          }
+        },
+        {
+          "name": "Update Loket",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/lokets/1", "host": ["{{base_url}}"], "path": ["api", "lokets", "1"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nama_loket\": \"Loket A1\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Loket",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/lokets/1", "host": ["{{base_url}}"], "path": ["api", "lokets", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Antrians",
+      "item": [
+        {
+          "name": "List Antrians",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/antrians", "host": ["{{base_url}}"], "path": ["api", "antrians"] }
+          }
+        },
+        {
+          "name": "Create Antrian",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/antrians", "host": ["{{base_url}}"], "path": ["api", "antrians"] },
+            "body": { "mode": "raw", "raw": "{\n  \"loket_id\": 1\n}" }
+          }
+        },
+        {
+          "name": "Get Antrian by ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/antrians/1", "host": ["{{base_url}}"], "path": ["api", "antrians", "1"] }
+          }
+        },
+        {
+          "name": "Update Antrian Status",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+            "url": { "raw": "{{base_url}}/api/antrians/1", "host": ["{{base_url}}"], "path": ["api", "antrians", "1"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"dipanggil\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Display (Public)",
+      "item": [
+        {
+          "name": "List Lokets (Public)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" } ],
+            "url": { "raw": "{{base_url}}/api/display/lokets", "host": ["{{base_url}}"], "path": ["api", "display", "lokets"] }
+          }
+        },
+        {
+          "name": "Display for a Loket (Public)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" } ],
+            "url": { "raw": "{{base_url}}/api/display/lokets/1", "host": ["{{base_url}}"], "path": ["api", "display", "lokets", "1"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -15,7 +15,7 @@ class DisplayController extends BaseController
 
     public function lokets()
     {
-        return $this->success(LoketResource::collection($this->service->lokets()));
+        return $this->success(LoketResource::collection($this->service->lokets()), 'lokets retrieved');
     }
 
     public function show(Loket $loket)
@@ -25,6 +25,6 @@ class DisplayController extends BaseController
             'loket' => new LoketResource($data['loket']),
             'current' => $data['current'] ? new AntrianResource($data['current']) : null,
             'next' => $data['next'] ? new AntrianResource($data['next']) : null,
-        ]);
+        ], 'display retrieved');
     }
 }

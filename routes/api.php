@@ -1,28 +1,21 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\LoketController;
-use App\Http\Controllers\Api\AntrianController;
-use App\Http\Controllers\Api\DisplayController;
+use App\Helpers\ResponseFormatter;
 
-Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::middleware('jwt.auth')->group(function () {
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me', [AuthController::class, 'me']);
-    });
+Route::get('/', function () {
+    return ResponseFormatter::success([
+        'service' => 'Q Medis API',
+        'laravel' => app()->version(),
+        'php' => PHP_VERSION,
+        'time' => now()->toDateTimeString(),
+    ], 'API is up');
 });
 
-// Public display endpoints
-Route::prefix('display')->group(function () {
-    Route::get('lokets', [DisplayController::class, 'lokets']);
-    Route::get('lokets/{loket}', [DisplayController::class, 'show']);
-});
+// Modular API routes
+require __DIR__.'/api/auth.php';
+require __DIR__.'/api/display.php';
+require __DIR__.'/api/lokets.php';
+require __DIR__.'/api/antrians.php';
+require __DIR__.'/api/users.php';
 
-// Protected resources
-Route::middleware('jwt.auth')->group(function () {
-    Route::apiResource('lokets', LoketController::class);
-    Route::apiResource('antrians', AntrianController::class)->only(['index','show','store','update']);
-});

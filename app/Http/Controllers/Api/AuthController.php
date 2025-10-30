@@ -31,12 +31,12 @@ class AuthController extends BaseController
         $result['user'] = new UserResource($result['user']);
         $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
 
-        return $this->success($result);
+        return $this->success($result, 'login success');
     }
 
     public function me()
     {
-        return $this->success(new UserResource(auth('api')->user()));
+        return $this->success(new UserResource(auth('api')->user()), 'profile retrieved');
     }
 
     public function refresh(RefreshRequest $request)
@@ -53,7 +53,7 @@ class AuthController extends BaseController
 
         $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
 
-        return $this->success($result);
+        return $this->success($result, 'token refreshed');
     }
 
     public function logout(RefreshRequest $request)
@@ -83,6 +83,7 @@ class AuthController extends BaseController
         $result['user'] = new UserResource($result['user']);
         $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
 
-        return $this->success($result);
+        return $this->success($result, 'google login success');
     }
 }
+
