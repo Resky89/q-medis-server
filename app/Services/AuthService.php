@@ -168,7 +168,7 @@ class AuthService
         }
     }
 
-    public function loginViaGoogle(string $googleId, ?string $email, ?string $name, ?string $avatar, string $userAgent = null, string $ip = null): array
+    public function loginViaGoogle(string $googleId, ?string $email, ?string $name, ?string $avatar, string $userAgent = null, string $ip = null): array|false
     {
         $user = null;
 
@@ -179,22 +179,15 @@ class AuthService
             $user = User::where('google_id', $googleId)->first();
         }
 
-        if ($user) {
-            $updates = [];
-            if (! $user->google_id) $updates['google_id'] = $googleId;
-            if ($name && $user->name !== $name) $updates['name'] = $name;
-            if ($avatar && $user->avatar !== $avatar) $updates['avatar'] = $avatar;
-            if ($updates) $user->update($updates);
-        } else {
-            $user = User::create([
-                'name' => $name ?: 'Google User',
-                'email' => $email ?: ("google_{$googleId}@example.local"),
-                'password' => Str::password(),
-                'google_id' => $googleId,
-                'avatar' => $avatar,
-                'role' => 'petugas',
-            ]);
+        if (! $user) {
+            return false;
         }
+
+        $updates = [];
+        if (! $user->google_id) $updates['google_id'] = $googleId;
+        if ($name && $user->name !== $name) $updates['name'] = $name;
+        if ($avatar && $user->avatar !== $avatar) $updates['avatar'] = $avatar;
+        if ($updates) $user->update($updates);
 
         return $this->issueTokens($user, $userAgent, $ip);
     }

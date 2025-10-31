@@ -47,11 +47,19 @@ class AntrianService
 
     public function call(Antrian $antrian): Antrian
     {
-        $antrian->update([
-            'status' => 'dipanggil',
-            'waktu_panggil' => now(),
-        ]);
+        return DB::transaction(function () use ($antrian) {
+            Antrian::query()
+                ->where('loket_id', $antrian->loket_id)
+                ->where('status', 'dipanggil')
+                ->where('id', '!=', $antrian->id)
+                ->update(['status' => 'selesai']);
 
-        return $antrian;
+            $antrian->update([
+                'status' => 'dipanggil',
+                'waktu_panggil' => now(),
+            ]);
+
+            return $antrian->refresh();
+        });
     }
 }

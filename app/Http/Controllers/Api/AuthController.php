@@ -88,6 +88,10 @@ class AuthController extends BaseController
             $request->ip(),
         );
 
+        if ($result === false) {
+            return $this->error('account not registered', 404);
+        }
+
         $result['user'] = new UserResource($result['user']);
         $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
 
