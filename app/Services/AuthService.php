@@ -191,8 +191,8 @@ class AuthService
                 'email' => $email,
                 'google_id' => $googleId,
                 'avatar' => $avatar,
-                'role' => 'petugas', // Default role for Google login
-                'password' => bcrypt(Str::random(32)), // Random password (won't be used)
+                'role' => 'petugas', 
+                'password' => bcrypt(Str::random(32)),
             ]);
         } else {
             // Update existing user's Google info if needed
