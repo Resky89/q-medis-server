@@ -88,14 +88,66 @@ class AuthController extends BaseController
             $request->ip(),
         );
 
+        // Validate and get return URL
+        $returnUrl = $this->validateReturnUrl($request->query('return_url'));
+
         if ($result === false) {
-            return $this->error('account not registered', 404);
+            // Redirect to frontend login with error (rare case: Google didn't provide email)
+            $loginUrl = $returnUrl ?: $this->getDefaultUrl('/auth/login');
+            return redirect($loginUrl . (str_contains($loginUrl, '?') ? '&' : '?') . 'error=google_login_failed');
         }
 
-        $result['user'] = new UserResource($result['user']);
-        $result['refresh_expires_at'] = $result['refresh_expires_at']->toISOString();
+        // Redirect to frontend callback with tokens
+        $callbackUrl = $returnUrl ?: $this->getDefaultUrl('/auth/google/callback');
+        
+        return redirect($callbackUrl . (str_contains($callbackUrl, '?') ? '&' : '?') . http_build_query([
+            'access_token' => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+        ]));
+    }
 
-        return $this->success($result, 'google login success');
+    /**
+     * Validate return URL against whitelist
+     */
+    private function validateReturnUrl(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        // Get allowed frontend URLs from config
+        $allowedUrls = array_filter([
+            config('app.frontend_url'),
+            config('app.url'), // Allow same domain
+        ]);
+
+        // Parse the URL
+        $parsedUrl = parse_url($url);
+        if (!$parsedUrl || !isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+            return null;
+        }
+
+        $urlBase = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+        if (isset($parsedUrl['port'])) {
+            $urlBase .= ':' . $parsedUrl['port'];
+        }
+
+        // Check if URL base matches any allowed URL
+        foreach ($allowedUrls as $allowedUrl) {
+            if (str_starts_with($url, rtrim($allowedUrl, '/'))) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get default frontend URL with path
+     */
+    private function getDefaultUrl(string $path = ''): string
+    {
+        $baseUrl = config('app.frontend_url', config('app.url', 'http://localhost:5173'));
+        return rtrim($baseUrl, '/') . $path;
     }
 }
-

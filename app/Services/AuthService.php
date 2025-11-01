@@ -172,6 +172,7 @@ class AuthService
     {
         $user = null;
 
+        // Try to find existing user by email or google_id
         if ($email) {
             $user = User::where('email', $email)->first();
         }
@@ -179,15 +180,28 @@ class AuthService
             $user = User::where('google_id', $googleId)->first();
         }
 
+        // Auto-create user if not found
         if (! $user) {
-            return false;
-        }
+            if (! $email) {
+                return false; // Email is required for new users
+            }
 
-        $updates = [];
-        if (! $user->google_id) $updates['google_id'] = $googleId;
-        if ($name && $user->name !== $name) $updates['name'] = $name;
-        if ($avatar && $user->avatar !== $avatar) $updates['avatar'] = $avatar;
-        if ($updates) $user->update($updates);
+            $user = User::create([
+                'name' => $name ?? 'User',
+                'email' => $email,
+                'google_id' => $googleId,
+                'avatar' => $avatar,
+                'role' => 'petugas', // Default role for Google login
+                'password' => bcrypt(Str::random(32)), // Random password (won't be used)
+            ]);
+        } else {
+            // Update existing user's Google info if needed
+            $updates = [];
+            if (! $user->google_id) $updates['google_id'] = $googleId;
+            if ($name && $user->name !== $name) $updates['name'] = $name;
+            if ($avatar && $user->avatar !== $avatar) $updates['avatar'] = $avatar;
+            if ($updates) $user->update($updates);
+        }
 
         return $this->issueTokens($user, $userAgent, $ip);
     }

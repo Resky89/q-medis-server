@@ -14,6 +14,7 @@ Route::get('/', function () {
 
 // Modular API routes
 require __DIR__.'/api/auth.php';
+require __DIR__.'/api/dashboard.php';
 require __DIR__.'/api/display.php';
 require __DIR__.'/api/lokets.php';
 require __DIR__.'/api/antrians.php';

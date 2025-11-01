@@ -73,6 +73,31 @@ paths:
       responses:
         '200': { description: OK }
         '401': { description: Unauthorized }
+  /api/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get dashboard data (role-based)
+      description: Returns different dashboard data based on user role (admin or petugas)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/AdminDashboard'
+                      - $ref: '#/components/schemas/PetugasDashboard'
+        '401': { description: Unauthorized }
+        '403': { description: Unauthorized role }
   /api/display/lokets:
     get:
       tags: [Display]
@@ -97,6 +122,19 @@ paths:
       summary: Display overview for all lokets (public)
       responses:
         '200': { description: OK }
+  /api/display/antrians:
+    post:
+      tags: [Display]
+      summary: Create an antrian (public)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AntrianCreateRequest'
+      responses:
+        '201': { description: Created }
+        '422': { description: Validation error }
   /api/lokets:
     get:
       tags: [Lokets]
@@ -374,3 +412,75 @@ components:
         role: { type: string, nullable: true, maxLength: 50 }
         avatar: { type: string, nullable: true, maxLength: 2048 }
         google_id: { type: string, nullable: true, maxLength: 255 }
+    AdminDashboard:
+      type: object
+      properties:
+        statistics:
+          type: object
+          properties:
+            total_lokets: { type: integer }
+            total_users: { type: integer }
+            total_petugas: { type: integer }
+            total_antrians_today: { type: integer }
+        antrian_by_status:
+          type: object
+          properties:
+            menunggu: { type: integer }
+            dipanggil: { type: integer }
+            selesai: { type: integer }
+        loket_statistics:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              nama_loket: { type: string }
+              kode_prefix: { type: string }
+              total_today: { type: integer }
+              menunggu: { type: integer }
+              dipanggil: { type: integer }
+              selesai: { type: integer }
+        recent_antrians:
+          type: array
+          items:
+            type: object
+        hourly_statistics:
+          type: array
+          items:
+            type: object
+            properties:
+              hour: { type: integer }
+              total: { type: integer }
+    PetugasDashboard:
+      type: object
+      properties:
+        assigned_lokets:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              nama_loket: { type: string }
+              kode_prefix: { type: string }
+              deskripsi: { type: string, nullable: true }
+        statistics:
+          type: object
+          properties:
+            total_antrians_today: { type: integer }
+            menunggu: { type: integer }
+            dipanggil: { type: integer }
+            selesai: { type: integer }
+        current_queue:
+          type: object
+          nullable: true
+        next_queue:
+          type: object
+          nullable: true
+        recent_antrians:
+          type: array
+          items:
+            type: object
+        loket_statistics:
+          type: array
+          items:
+            type: object
