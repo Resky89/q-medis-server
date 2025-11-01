@@ -444,13 +444,66 @@ components:
           type: array
           items:
             type: object
+            properties:
+              id: { type: integer }
+              loket_id: { type: integer }
+              nomor_antrian: { type: string }
+              status: { type: string, enum: [menunggu, dipanggil, selesai] }
+              waktu_panggil: { type: string, format: date-time, nullable: true }
+              created_at: { type: string, format: date-time }
+              updated_at: { type: string, format: date-time }
+              loket:
+                type: object
+                properties:
+                  id: { type: integer }
+                  nama_loket: { type: string }
+                  kode_prefix: { type: string }
+                  deskripsi: { type: string, nullable: true }
         hourly_statistics:
           type: array
           items:
             type: object
             properties:
-              hour: { type: integer }
-              total: { type: integer }
+              hour: { type: integer, description: "Hour of the day (0-23)" }
+              total: { type: integer, description: "Total antrians in that hour" }
+      example:
+        statistics:
+          total_lokets: 5
+          total_users: 12
+          total_petugas: 8
+          total_antrians_today: 45
+        antrian_by_status:
+          menunggu: 12
+          dipanggil: 3
+          selesai: 30
+        loket_statistics:
+          - id: 1
+            nama_loket: "Loket A"
+            kode_prefix: "A"
+            total_today: 15
+            menunggu: 5
+            dipanggil: 1
+            selesai: 9
+        recent_antrians:
+          - id: 45
+            loket_id: 1
+            nomor_antrian: "A015"
+            status: "menunggu"
+            waktu_panggil: null
+            created_at: "2024-11-01T14:30:00Z"
+            updated_at: "2024-11-01T14:30:00Z"
+            loket:
+              id: 1
+              nama_loket: "Loket A"
+              kode_prefix: "A"
+              deskripsi: "Pendaftaran"
+        hourly_statistics:
+          - hour: 8
+            total: 5
+          - hour: 9
+            total: 12
+          - hour: 10
+            total: 15
     PetugasDashboard:
       type: object
       properties:
@@ -473,14 +526,111 @@ components:
         current_queue:
           type: object
           nullable: true
+          properties:
+            id: { type: integer }
+            loket_id: { type: integer }
+            nomor_antrian: { type: string }
+            status: { type: string }
+            waktu_panggil: { type: string, format: date-time }
+            created_at: { type: string, format: date-time }
+            loket:
+              type: object
+              properties:
+                id: { type: integer }
+                nama_loket: { type: string }
+                kode_prefix: { type: string }
         next_queue:
           type: object
           nullable: true
+          properties:
+            id: { type: integer }
+            loket_id: { type: integer }
+            nomor_antrian: { type: string }
+            status: { type: string }
+            created_at: { type: string, format: date-time }
+            loket:
+              type: object
+              properties:
+                id: { type: integer }
+                nama_loket: { type: string }
+                kode_prefix: { type: string }
         recent_antrians:
           type: array
           items:
             type: object
+            properties:
+              id: { type: integer }
+              loket_id: { type: integer }
+              nomor_antrian: { type: string }
+              status: { type: string, enum: [menunggu, dipanggil, selesai] }
+              waktu_panggil: { type: string, format: date-time, nullable: true }
+              created_at: { type: string, format: date-time }
+              loket:
+                type: object
+                properties:
+                  id: { type: integer }
+                  nama_loket: { type: string }
+                  kode_prefix: { type: string }
         loket_statistics:
           type: array
           items:
             type: object
+            properties:
+              id: { type: integer }
+              nama_loket: { type: string }
+              kode_prefix: { type: string }
+              total_today: { type: integer }
+              menunggu: { type: integer }
+              dipanggil: { type: integer }
+              selesai: { type: integer }
+      example:
+        assigned_lokets:
+          - id: 1
+            nama_loket: "Loket A"
+            kode_prefix: "A"
+            deskripsi: "Pendaftaran"
+        statistics:
+          total_antrians_today: 15
+          menunggu: 5
+          dipanggil: 1
+          selesai: 9
+        current_queue:
+          id: 12
+          loket_id: 1
+          nomor_antrian: "A012"
+          status: "dipanggil"
+          waktu_panggil: "2024-11-01T14:20:00Z"
+          created_at: "2024-11-01T14:15:00Z"
+          loket:
+            id: 1
+            nama_loket: "Loket A"
+            kode_prefix: "A"
+        next_queue:
+          id: 13
+          loket_id: 1
+          nomor_antrian: "A013"
+          status: "menunggu"
+          created_at: "2024-11-01T14:18:00Z"
+          loket:
+            id: 1
+            nama_loket: "Loket A"
+            kode_prefix: "A"
+        recent_antrians:
+          - id: 15
+            loket_id: 1
+            nomor_antrian: "A015"
+            status: "menunggu"
+            waktu_panggil: null
+            created_at: "2024-11-01T14:30:00Z"
+            loket:
+              id: 1
+              nama_loket: "Loket A"
+              kode_prefix: "A"
+        loket_statistics:
+          - id: 1
+            nama_loket: "Loket A"
+            kode_prefix: "A"
+            total_today: 15
+            menunggu: 5
+            dipanggil: 1
+            selesai: 9

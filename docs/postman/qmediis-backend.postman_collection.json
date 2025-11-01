@@ -318,6 +318,27 @@
       ]
     },
     {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Data (Role-based)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard"]
+            },
+            "description": "Get dashboard statistics. Returns different data based on user role:\n- Admin: Complete statistics for all lokets, users, and antrians\n- Petugas: Statistics only for assigned lokets and their antrians"
+          }
+        }
+      ]
+    },
+    {
       "name": "Display (Public)",
       "item": [
         {
