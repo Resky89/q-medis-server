@@ -147,7 +147,7 @@ class AuthController extends BaseController
      */
     private function getDefaultUrl(string $path = ''): string
     {
-        $baseUrl = config('app.frontend_url', config('app.url', 'http://localhost:5173'));
+        $baseUrl = config('app.frontend_url', config('app.url', 'http://localhost:9000'));
         return rtrim($baseUrl, '/') . $path;
     }
 }

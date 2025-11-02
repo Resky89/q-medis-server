@@ -15,7 +15,7 @@ Atur variabel berikut di proyek frontend:
 - API_BASE_URL=http://localhost:8000
 - API_TIMEOUT=5
 - API_POLL_MS=5000
-- FRONTEND_URL=http://localhost:5173 (atau host frontend Anda)
+- FRONTEND_URL=http://localhost:9000 (atau host frontend Anda)
 - BACKEND_GOOGLE_REDIRECT=http://localhost:8000/auth/google/redirect
 - BACKEND_GOOGLE_CALLBACK=http://localhost:8000/auth/google/callback
 
