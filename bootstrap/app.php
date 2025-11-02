@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         if (class_exists('App\\Http\\Middleware\\JwtMiddleware')) {
             $middleware->alias(['jwt.verify' => 'App\\Http\\Middleware\\JwtMiddleware']);
         }
+        if (class_exists('App\\Http\\Middleware\\RoleMiddleware')) {
+            $middleware->alias(['role' => 'App\\Http\\Middleware\\RoleMiddleware']);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // JSON formatting for common exceptions

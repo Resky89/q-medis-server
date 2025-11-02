@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use App\Helpers\ResponseFormatter;
 
 class JwtMiddleware
 {
@@ -14,7 +15,7 @@ class JwtMiddleware
         try {
             JWTAuth::parseToken()->authenticate();
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'unauthenticated'], 401);
+            return ResponseFormatter::error('unauthenticated', 401);
         }
 
         return $next($request);

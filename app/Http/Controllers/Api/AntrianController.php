@@ -48,7 +48,7 @@ class AntrianController extends BaseController
 
     public function update(UpdateAntrianStatusRequest $request, Antrian $antrian)
     {
-        $status = $request->string('status');
+        $status = (string) $request->string('status');
         if ($status === 'dipanggil') {
             $antrian = $this->service->call($antrian);
         } else {
