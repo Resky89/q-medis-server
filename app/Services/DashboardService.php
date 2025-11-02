@@ -66,7 +66,7 @@ class DashboardService
 
     public function getPetugasDashboard(): array
     {
-        $user = Auth::user();
+        $user = auth('api')->user();
         $today = now()->toDateString();
 
         // Get lokets assigned to this petugas
@@ -76,15 +76,55 @@ class DashboardService
 
         $loketIds = $petugasLokets->pluck('loket_id');
 
+        if ($loketIds->isEmpty()) {
+            return [
+                'statistics' => [
+                    'total_antrians_today' => Antrian::whereDate('created_at', $today)->count(),
+                    'menunggu' => Antrian::whereDate('created_at', $today)
+                        ->where('status', 'menunggu')
+                        ->count(),
+                    'dipanggil' => Antrian::whereDate('created_at', $today)
+                        ->where('status', 'dipanggil')
+                        ->count(),
+                    'selesai' => Antrian::whereDate('created_at', $today)
+                        ->where('status', 'selesai')
+                        ->count(),
+                ],
+                'current_queue' => Antrian::with('loket')
+                    ->whereDate('created_at', $today)
+                    ->where('status', 'dipanggil')
+                    ->first(),
+                'next_queue' => Antrian::with('loket')
+                    ->whereDate('created_at', $today)
+                    ->where('status', 'menunggu')
+                    ->orderBy('created_at', 'asc')
+                    ->first(),
+                'recent_antrians' => Antrian::with('loket')
+                    ->whereDate('created_at', $today)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get(),
+                'loket_statistics' => Loket::withCount([
+                    'antrians as total_today' => function ($query) use ($today) {
+                        $query->whereDate('created_at', $today);
+                    },
+                    'antrians as menunggu' => function ($query) use ($today) {
+                        $query->whereDate('created_at', $today)
+                            ->where('status', 'menunggu');
+                    },
+                    'antrians as dipanggil' => function ($query) use ($today) {
+                        $query->whereDate('created_at', $today)
+                            ->where('status', 'dipanggil');
+                    },
+                    'antrians as selesai' => function ($query) use ($today) {
+                        $query->whereDate('created_at', $today)
+                            ->where('status', 'selesai');
+                    },
+                ])->get(),
+            ];
+        }
+
         return [
-            'assigned_lokets' => $petugasLokets->map(function ($pl) {
-                return [
-                    'id' => $pl->loket->id,
-                    'nama_loket' => $pl->loket->nama_loket,
-                    'kode_prefix' => $pl->loket->kode_prefix,
-                    'deskripsi' => $pl->loket->deskripsi,
-                ];
-            }),
             'statistics' => [
                 'total_antrians_today' => Antrian::whereIn('loket_id', $loketIds)
                     ->whereDate('created_at', $today)

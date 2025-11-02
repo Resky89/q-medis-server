@@ -16,6 +16,17 @@ class AntrianService
     public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
         $query = Antrian::query();
+        
+        // Filter by loket_id if provided
+        if (isset($params['loket_id']) && $params['loket_id']) {
+            $query->where('loket_id', (int) $params['loket_id']);
+        }
+        
+        // Filter by status if provided
+        if (isset($params['status']) && $params['status'] !== '') {
+            $query->where('status', (string) $params['status']);
+        }
+        
         QueryFilters::apply(
             $query,
             $params,

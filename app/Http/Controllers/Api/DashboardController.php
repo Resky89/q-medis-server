@@ -13,7 +13,7 @@ class DashboardController extends BaseController
 
     public function index()
     {
-        $user = Auth::user();
+        $user = auth('api')->user();
 
         if ($user->role === 'admin') {
             $data = $this->service->getAdminDashboard();

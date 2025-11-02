@@ -507,15 +507,6 @@ components:
     PetugasDashboard:
       type: object
       properties:
-        assigned_lokets:
-          type: array
-          items:
-            type: object
-            properties:
-              id: { type: integer }
-              nama_loket: { type: string }
-              kode_prefix: { type: string }
-              deskripsi: { type: string, nullable: true }
         statistics:
           type: object
           properties:
@@ -584,11 +575,6 @@ components:
               dipanggil: { type: integer }
               selesai: { type: integer }
       example:
-        assigned_lokets:
-          - id: 1
-            nama_loket: "Loket A"
-            kode_prefix: "A"
-            deskripsi: "Pendaftaran"
         statistics:
           total_antrians_today: 15
           menunggu: 5

@@ -21,7 +21,7 @@ class AntrianController extends BaseController
         if ($perPage > 100) {
             $perPage = 100;
         }
-        $params = $request->only(['search', 'order_by', 'order_dir']);
+        $params = $request->only(['search', 'order_by', 'order_dir', 'loket_id', 'status']);
         $antrians = $this->service->paginate($perPage, $params);
 
         return $this->success([
