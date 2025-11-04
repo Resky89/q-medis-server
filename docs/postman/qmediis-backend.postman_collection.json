@@ -16,7 +16,9 @@
     { "key": "search", "value": "" },
     { "key": "order_by", "value": "id" },
     { "key": "order_dir", "value": "asc" },
-    { "key": "user_id", "value": "1" }
+    { "key": "user_id", "value": "1" },
+    { "key": "loket_id", "value": "1" },
+    { "key": "status", "value": "" }
   ],
   "item": [
     {
@@ -279,23 +281,28 @@
             "method": "GET",
             "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
             "url": {
-              "raw": "{{base_url}}/api/antrians?page={{page}}&per_page={{per_page}}",
+              "raw": "{{base_url}}/api/antrians?page={{page}}&per_page={{per_page}}&loket_id={{loket_id}}&status={{status}}&search={{search}}&order_by={{order_by}}&order_dir={{order_dir}}",
               "host": ["{{base_url}}"],
               "path": ["api", "antrians"],
               "query": [
                 { "key": "page", "value": "{{page}}" },
-                { "key": "per_page", "value": "{{per_page}}" }
+                { "key": "per_page", "value": "{{per_page}}" },
+                { "key": "loket_id", "value": "{{loket_id}}" },
+                { "key": "status", "value": "{{status}}" },
+                { "key": "search", "value": "{{search}}" },
+                { "key": "order_by", "value": "{{order_by}}" },
+                { "key": "order_dir", "value": "{{order_dir}}" }
               ]
             }
           }
         },
         {
-          "name": "Create Antrian",
+          "name": "Create Antrian (Public via Display)",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
-            "url": { "raw": "{{base_url}}/api/antrians", "host": ["{{base_url}}"], "path": ["api", "antrians"] },
-            "body": { "mode": "raw", "raw": "{\n  \"loket_id\": 1\n}" }
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{base_url}}/api/display/antrians", "host": ["{{base_url}}"], "path": ["api", "display", "antrians"] },
+            "body": { "mode": "raw", "raw": "{\n  \"loket_id\": {{loket_id}}\n}" }
           }
         },
         {
@@ -354,7 +361,7 @@
           "request": {
             "method": "GET",
             "header": [ { "key": "Accept", "value": "application/json" } ],
-            "url": { "raw": "{{base_url}}/api/display/lokets/1", "host": ["{{base_url}}"], "path": ["api", "display", "lokets", "1"] }
+            "url": { "raw": "{{base_url}}/api/display/lokets/{{loket_id}}", "host": ["{{base_url}}"], "path": ["api", "display", "lokets", "{{loket_id}}"] }
           }
         },
         {

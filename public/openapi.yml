@@ -13,6 +13,16 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: API is up
+                data:
+                  service: Q Medis API
+                  laravel: "12.x"
+                  php: "8.2.x"
+                  time: "2025-01-01T12:00:00Z"
   /api/auth/login:
     post:
       tags: [Auth]
@@ -28,8 +38,24 @@ paths:
                 email: { type: string, format: email }
                 password: { type: string, format: password }
       responses:
-        '200': { description: OK }
-        '401': { description: Invalid credentials }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: login success
+                data:
+                  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token: "7e8f0b72-1d2c-4f9b-9a5a-123456789abc"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              example:
+                status: error
+                message: invalid credentials
+                errors: {}
   /api/auth/refresh:
     post:
       tags: [Auth]
@@ -44,8 +70,24 @@ paths:
               properties:
                 refresh_token: { type: string }
       responses:
-        '200': { description: OK }
-        '401': { description: Invalid refresh token }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: token refreshed
+                data:
+                  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token: "e9a1c223-aaaa-bbbb-cccc-123456789abc"
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              example:
+                status: error
+                message: invalid refresh token
+                errors: {}
   /api/auth/me:
     get:
       tags: [Auth]
@@ -53,8 +95,29 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200': { description: OK }
-        '401': { description: Unauthorized }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: profile retrieved
+                data:
+                  id: 1
+                  name: "Admin"
+                  email: "admin@example.com"
+                  role: "admin"
+                  avatar: null
+                  created_at: "2024-11-01T10:00:00Z"
+                  updated_at: "2024-11-01T10:00:00Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              example:
+                status: error
+                message: unauthorized
+                errors: {}
   /api/auth/logout:
     post:
       tags: [Auth]
@@ -71,8 +134,22 @@ paths:
               properties:
                 refresh_token: { type: string }
       responses:
-        '200': { description: OK }
-        '401': { description: Unauthorized }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: logged out
+                data: null
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              example:
+                status: error
+                message: unauthorized
+                errors: {}
   /api/dashboard:
     get:
       tags: [Dashboard]
@@ -103,7 +180,20 @@ paths:
       tags: [Display]
       summary: List lokets (public)
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: lokets retrieved
+                data:
+                  - id: 1
+                    nama_loket: "Loket A"
+                    kode_prefix: "A"
+                    deskripsi: "Pendaftaran"
+                    created_at: "2024-11-01T10:00:00Z"
+                    updated_at: "2024-11-01T10:00:00Z"
   /api/display/lokets/{loket}:
     get:
       tags: [Display]
@@ -114,14 +204,72 @@ paths:
           required: true
           schema: { type: integer }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: display retrieved
+                data:
+                  loket:
+                    id: 1
+                    nama_loket: "Loket A"
+                    kode_prefix: "A"
+                    deskripsi: "Pendaftaran"
+                    created_at: "2024-11-01T10:00:00Z"
+                    updated_at: "2024-11-01T10:00:00Z"
+                  current:
+                    id: 12
+                    loket_id: 1
+                    nomor_antrian: "A012"
+                    status: "dipanggil"
+                    waktu_panggil: "2024-11-01T10:45:00Z"
+                    created_at: "2024-11-01T10:40:00Z"
+                    updated_at: "2024-11-01T10:45:00Z"
+                  next:
+                    - id: 13
+                      loket_id: 1
+                      nomor_antrian: "A013"
+                      status: "menunggu"
+                      waktu_panggil: null
+                      created_at: "2024-11-01T10:46:00Z"
+                      updated_at: "2024-11-01T10:46:00Z"
         '404': { description: Not found }
   /api/display/overview:
     get:
       tags: [Display]
       summary: Display overview for all lokets (public)
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: overview retrieved
+                data:
+                  - loket:
+                      id: 1
+                      nama_loket: "Loket A"
+                      kode_prefix: "A"
+                      deskripsi: "Pendaftaran"
+                    current:
+                      id: 12
+                      loket_id: 1
+                      nomor_antrian: "A012"
+                      status: "dipanggil"
+                      waktu_panggil: "2024-11-01T10:45:00Z"
+                      created_at: "2024-11-01T10:40:00Z"
+                      updated_at: "2024-11-01T10:45:00Z"
+                    next:
+                      - id: 13
+                        loket_id: 1
+                        nomor_antrian: "A013"
+                        status: "menunggu"
+                        waktu_panggil: null
+                        created_at: "2024-11-01T10:46:00Z"
+                        updated_at: "2024-11-01T10:46:00Z"
   /api/display/antrians:
     post:
       tags: [Display]
@@ -133,8 +281,31 @@ paths:
             schema:
               $ref: '#/components/schemas/AntrianCreateRequest'
       responses:
-        '201': { description: Created }
-        '422': { description: Validation error }
+        '201':
+          description: Created
+          content:
+            application/json:
+              example:
+                status: success
+                message: antrian created
+                data:
+                  id: 20
+                  loket_id: 1
+                  nomor_antrian: "A020"
+                  status: "menunggu"
+                  waktu_panggil: null
+                  created_at: "2024-11-01T11:10:00Z"
+                  updated_at: "2024-11-01T11:10:00Z"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              example:
+                status: error
+                message: validation error
+                errors:
+                  loket_id:
+                    - The loket id field is required.
   /api/lokets:
     get:
       tags: [Lokets]
@@ -162,7 +333,26 @@ paths:
             type: string
             enum: [asc, desc]
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: lokets retrieved
+                data:
+                  data:
+                    - id: 1
+                      nama_loket: "Loket A"
+                      kode_prefix: "A"
+                      deskripsi: "Pendaftaran"
+                      created_at: "2024-11-01T10:00:00Z"
+                      updated_at: "2024-11-01T10:00:00Z"
+                  pagination:
+                    current_page: 1
+                    per_page: 15
+                    total: 2
+                    last_page: 1
         '401': { description: Unauthorized }
     post:
       tags: [Lokets]
@@ -176,7 +366,20 @@ paths:
             schema:
               $ref: '#/components/schemas/LoketCreateRequest'
       responses:
-        '201': { description: Created }
+        '201':
+          description: Created
+          content:
+            application/json:
+              example:
+                status: success
+                message: loket created
+                data:
+                  id: 2
+                  nama_loket: "Loket B"
+                  kode_prefix: "B"
+                  deskripsi: "Pembayaran"
+                  created_at: "2024-11-01T11:00:00Z"
+                  updated_at: "2024-11-01T11:00:00Z"
         '401': { description: Unauthorized }
   /api/lokets/{loket}:
     get:
@@ -190,7 +393,74 @@ paths:
           required: true
           schema: { type: integer }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: loket retrieved
+                data:
+                  id: 1
+                  nama_loket: "Loket A"
+                  kode_prefix: "A"
+                  deskripsi: "Pendaftaran"
+                  created_at: "2024-11-01T10:00:00Z"
+                  updated_at: "2024-11-01T10:00:00Z"
+        '401': { description: Unauthorized }
+        '404': { description: Not found }
+    put:
+      tags: [Lokets]
+      summary: Update a loket
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: loket
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoketUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: loket updated
+                data:
+                  id: 1
+                  nama_loket: "Loket A1"
+                  kode_prefix: "A"
+                  deskripsi: "Pendaftaran"
+                  created_at: "2024-11-01T10:00:00Z"
+                  updated_at: "2024-11-01T12:00:00Z"
+        '401': { description: Unauthorized }
+        '404': { description: Not found }
+    delete:
+      tags: [Lokets]
+      summary: Delete a loket
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: loket
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: loket deleted
+                data: null
         '401': { description: Unauthorized }
         '404': { description: Not found }
   /api/users:
@@ -220,7 +490,27 @@ paths:
             type: string
             enum: [asc, desc]
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: users retrieved
+                data:
+                  data:
+                    - id: 1
+                      name: "Admin"
+                      email: "admin@example.com"
+                      role: "admin"
+                      avatar: null
+                      created_at: "2024-11-01T10:00:00Z"
+                      updated_at: "2024-11-01T10:00:00Z"
+                  pagination:
+                    current_page: 1
+                    per_page: 15
+                    total: 1
+                    last_page: 1
         '401': { description: Unauthorized }
     post:
       tags: [Users]
@@ -234,7 +524,21 @@ paths:
             schema:
               $ref: '#/components/schemas/UserCreateRequest'
       responses:
-        '201': { description: Created }
+        '201':
+          description: Created
+          content:
+            application/json:
+              example:
+                status: success
+                message: user created
+                data:
+                  id: 2
+                  name: "User A"
+                  email: "usera@example.com"
+                  role: "petugas"
+                  avatar: null
+                  created_at: "2024-11-01T11:00:00Z"
+                  updated_at: "2024-11-01T11:00:00Z"
         '401': { description: Unauthorized }
   /api/users/{user}:
     get:
@@ -248,7 +552,21 @@ paths:
           required: true
           schema: { type: integer }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: user retrieved
+                data:
+                  id: 1
+                  name: "Admin"
+                  email: "admin@example.com"
+                  role: "admin"
+                  avatar: null
+                  created_at: "2024-11-01T10:00:00Z"
+                  updated_at: "2024-11-01T10:00:00Z"
         '401': { description: Unauthorized }
         '404': { description: Not found }
     put:
@@ -268,7 +586,21 @@ paths:
             schema:
               $ref: '#/components/schemas/UserUpdateRequest'
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: user updated
+                data:
+                  id: 1
+                  name: "Admin A1"
+                  email: "admin@example.com"
+                  role: "admin"
+                  avatar: null
+                  created_at: "2024-11-01T10:00:00Z"
+                  updated_at: "2024-11-01T12:00:00Z"
         '401': { description: Unauthorized }
         '404': { description: Not found }
     delete:
@@ -282,7 +614,14 @@ paths:
           required: true
           schema: { type: integer }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: user deleted
+                data: null
         '401': { description: Unauthorized }
         '404': { description: Not found }
   /api/antrians:
@@ -299,6 +638,14 @@ paths:
           name: per_page
           schema: { type: integer, default: 15 }
         - in: query
+          name: loket_id
+          schema: { type: integer }
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [menunggu, dipanggil, selesai]
+        - in: query
           name: search
           schema: { type: string }
         - in: query
@@ -312,21 +659,27 @@ paths:
             type: string
             enum: [asc, desc]
       responses:
-        '200': { description: OK }
-        '401': { description: Unauthorized }
-    post:
-      tags: [Antrians]
-      summary: Create an antrian
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AntrianCreateRequest'
-      responses:
-        '201': { description: Created }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: antrians retrieved
+                data:
+                  data:
+                    - id: 10
+                      loket_id: 1
+                      nomor_antrian: "A010"
+                      status: "menunggu"
+                      waktu_panggil: null
+                      created_at: "2024-11-01T10:30:00Z"
+                      updated_at: "2024-11-01T10:30:00Z"
+                  pagination:
+                    current_page: 1
+                    per_page: 15
+                    total: 10
+                    last_page: 1
         '401': { description: Unauthorized }
   /api/antrians/{antrian}:
     get:
@@ -340,7 +693,21 @@ paths:
           required: true
           schema: { type: integer }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: antrian retrieved
+                data:
+                  id: 10
+                  loket_id: 1
+                  nomor_antrian: "A010"
+                  status: "menunggu"
+                  waktu_panggil: null
+                  created_at: "2024-11-01T10:30:00Z"
+                  updated_at: "2024-11-01T10:30:00Z"
         '401': { description: Unauthorized }
         '404': { description: Not found }
     put:
@@ -360,7 +727,21 @@ paths:
             schema:
               $ref: '#/components/schemas/AntrianUpdateRequest'
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status: success
+                message: antrian updated
+                data:
+                  id: 10
+                  loket_id: 1
+                  nomor_antrian: "A010"
+                  status: "dipanggil"
+                  waktu_panggil: "2024-11-01T10:45:00Z"
+                  created_at: "2024-11-01T10:30:00Z"
+                  updated_at: "2024-11-01T10:45:00Z"
         '401': { description: Unauthorized }
         '404': { description: Not found }
 components:

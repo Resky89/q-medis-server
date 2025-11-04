@@ -59,11 +59,15 @@ class AntrianService
     public function call(Antrian $antrian): Antrian
     {
         return DB::transaction(function () use ($antrian) {
-            Antrian::query()
+            $exists = Antrian::query()
                 ->where('loket_id', $antrian->loket_id)
                 ->where('status', 'dipanggil')
                 ->where('id', '!=', $antrian->id)
-                ->update(['status' => 'selesai']);
+                ->exists();
+
+            if ($exists) {
+                throw new \RuntimeException('Masih ada antrian yang sedang dipanggil di loket ini. Selesaikan terlebih dahulu.');
+            }
 
             $antrian->update([
                 'status' => 'dipanggil',
