@@ -298,11 +298,13 @@ Authorization: Bearer <access_token>
 - `DELETE /api/users/{id}` - Delete user (admin only)
 
 #### Display
-- `GET /api/display/current` - Get currently called queues
-- `GET /api/display/waiting` - Get waiting queues count
+- `GET /api/display/lokets` - List all lokets with queue info
+- `GET /api/display/lokets/{id}` - Get loket details with current queue
+- `GET /api/display/overview` - Get overview of all queues
+- `POST /api/display/antrians` - Create new queue entry (public, rate-limited)
 
 #### Dashboard
-- `GET /api/dashboard/stats` - Get dashboard statistics
+- `GET /api/dashboard` - Get dashboard statistics (requires authentication)
 
 For complete API documentation with request/response examples, see:
 - **[docs/api_endpoints.md](docs/api_endpoints.md)** - Detailed endpoint documentation
