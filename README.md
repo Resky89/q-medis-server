@@ -258,11 +258,6 @@ http://localhost:8000/api
 http://localhost:8000/docs
 ```
 
-**OpenAPI JSON:**
-```
-http://localhost:8000/openapi.json
-```
-
 ### Authentication
 
 All protected endpoints require JWT Bearer token:
@@ -355,21 +350,6 @@ For complete API documentation with request/response examples, see:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `QUEUE_DIGITS` | Queue number padding | 3 |
-
----
-
-## 🧪 Testing
-
-Run all tests:
-```bash
-php artisan test
-```
-
-Run specific test suite:
-```bash
-php artisan test --testsuite=Feature
-php artisan test --testsuite=Unit
-```
 
 ---
 
