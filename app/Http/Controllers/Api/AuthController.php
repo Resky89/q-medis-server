@@ -33,7 +33,12 @@ class AuthController extends BaseController
             'refresh_token' => $result['refresh_token'],
         ];
 
-        return $this->success($data, 'login success');
+        $refreshTtlMinutes = ((int) env('JWT_REFRESH_TTL_DAYS', 30)) * 24 * 60;
+        $secure = $request->isSecure();
+        $sameSite = 'Lax';
+
+        return $this->success($data, 'login success')
+            ->cookie('refresh_token', $result['refresh_token'], $refreshTtlMinutes, '/', null, $secure, true, false, $sameSite);
     }
 
     
@@ -45,8 +50,12 @@ class AuthController extends BaseController
     
     public function refresh(RefreshRequest $request)
     {
+        $refreshToken = $request->input('refresh_token', $request->cookie('refresh_token'));
+        if (! $refreshToken) {
+            return $this->error('invalid refresh token', 401);
+        }
         $result = $this->authService->refresh(
-            $request->input('refresh_token'),
+            $refreshToken,
             $request->userAgent(),
             $request->ip(),
         );
@@ -57,7 +66,6 @@ class AuthController extends BaseController
 
         $data = [
             'access_token' => $result['access_token'],
-            'refresh_token' => $result['refresh_token'],
         ];
 
         return $this->success($data, 'token refreshed');
@@ -66,8 +74,12 @@ class AuthController extends BaseController
     
     public function logout(RefreshRequest $request)
     {
-        $this->authService->logout($request->input('refresh_token'));
-        return $this->success(null, 'logged out');
+        $refreshToken = $request->cookie('refresh_token');
+        $this->authService->logout($refreshToken);
+        $secure = $request->isSecure();
+        $sameSite = 'Lax';
+        return $this->success(null, 'logged out')
+            ->cookie('refresh_token', '', -1, '/', null, $secure, true, false, $sameSite);
     }
 
     public function googleRedirect()

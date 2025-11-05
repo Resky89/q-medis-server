@@ -27,6 +27,7 @@ paths:
     post:
       tags: [Auth]
       summary: Login with email and password
+      description: On success, sets an httpOnly refresh_token cookie. Response body contains only the access_token.
       requestBody:
         required: true
         content:
@@ -47,7 +48,6 @@ paths:
                 message: login success
                 data:
                   access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  refresh_token: "7e8f0b72-1d2c-4f9b-9a5a-123456789abc"
         '401':
           description: Invalid credentials
           content:
@@ -60,13 +60,13 @@ paths:
     post:
       tags: [Auth]
       summary: Refresh access token using refresh token
+      description: Reads the refresh token from an httpOnly cookie. For non-browser clients, you may also send it in the request body.
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
               type: object
-              required: [refresh_token]
               properties:
                 refresh_token: { type: string }
       responses:
@@ -79,9 +79,8 @@ paths:
                 message: token refreshed
                 data:
                   access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  refresh_token: "e9a1c223-aaaa-bbbb-cccc-123456789abc"
         '401':
-          description: Invalid refresh token
+          description: Invalid or expired refresh token (session revoked)
           content:
             application/json:
               example:
@@ -122,17 +121,7 @@ paths:
     post:
       tags: [Auth]
       summary: Logout and revoke refresh token
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [refresh_token]
-              properties:
-                refresh_token: { type: string }
+      description: Reads the refresh token from httpOnly cookie; for non-browser clients, you may also send it in the request body.
       responses:
         '200':
           description: OK

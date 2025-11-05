@@ -52,7 +52,6 @@
                   "try { json = pm.response.json(); } catch (e) {}",
                   "const data = (json && json.data) ? json.data : json;",
                   "if (data.access_token) pm.environment.set('jwt_token', data.access_token);",
-                  "if (data.refresh_token) pm.environment.set('refresh_token', data.refresh_token);",
                   "if (data.user && data.user.id) pm.environment.set('me_id', data.user.id);",
                   "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
                 ],
@@ -82,11 +81,11 @@
             "method": "POST",
             "header": [
               { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
             ],
             "url": { "raw": "{{base_url}}/api/auth/refresh", "host": ["{{base_url}}"], "path": ["api", "auth", "refresh"] },
-            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}" },
-            "description": "Exchange refresh token for new access and refresh tokens."
+            "description": "Reads refresh token from httpOnly cookie and returns a new access token (no new refresh token returned)."
           },
           "event": [
             {
@@ -97,7 +96,6 @@
                   "try { json = pm.response.json(); } catch (e) {}",
                   "const data = (json && json.data) ? json.data : json;",
                   "if (data.access_token) pm.environment.set('jwt_token', data.access_token);",
-                  "if (data.refresh_token) pm.environment.set('refresh_token', data.refresh_token);",
                   "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
                 ],
                 "type": "text/javascript"
@@ -115,8 +113,7 @@
               { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
             ],
             "url": { "raw": "{{base_url}}/api/auth/logout", "host": ["{{base_url}}"], "path": ["api", "auth", "logout"] },
-            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}" },
-            "description": "Invalidate access token and revoke refresh token."
+            "description": "Revoke refresh session using token from httpOnly cookie and invalidate access token if provided."
           },
           "event": [
             {

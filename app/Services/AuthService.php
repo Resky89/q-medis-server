@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTFactory;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException;
 
 class AuthService
 {
@@ -17,6 +18,26 @@ class AuthService
             $key = base64_decode(substr($key, 7));
         }
         return hash_hmac('sha256', $plain, $key);
+    }
+
+    private function decodeJwtPayload(string $jwt): ?array
+    {
+        $parts = explode('.', $jwt);
+        if (count($parts) < 2) {
+            return null;
+        }
+        $payload = $parts[1];
+        $payload = strtr($payload, '-_', '+/');
+        $padding = strlen($payload) % 4;
+        if ($padding) {
+            $payload .= str_repeat('=', 4 - $padding);
+        }
+        $json = base64_decode($payload, true);
+        if ($json === false) {
+            return null;
+        }
+        $data = json_decode($json, true);
+        return is_array($data) ? $data : null;
     }
 
     private function issueTokens(User $user, ?string $userAgent = null, ?string $ip = null): array
@@ -78,6 +99,22 @@ class AuthService
         // Decode and validate refresh JWT (signature & exp)
         try {
             $payload = JWTAuth::setToken($refreshToken)->getPayload();
+        } catch (TokenExpiredException $e) {
+            // When refresh token is expired: revoke its session and invalidate current access token
+            $decoded = $this->decodeJwtPayload($refreshToken);
+            $rid = $decoded['jti'] ?? null;
+            if ($rid) {
+                $hash = $this->hashToken($rid);
+                JwtSession::where('refresh_token', $hash)
+                    ->whereNull('revoked_at')
+                    ->update(['revoked_at' => now()]);
+            }
+            try {
+                JWTAuth::parseToken()->invalidate(true);
+            } catch (\Throwable $e2) {
+                // ignore if no access token present
+            }
+            return false;
         } catch (\Throwable $e) {
             return false;
         }
@@ -114,36 +151,10 @@ class AuthService
             'avatar' => $user->avatar ?? null,
         ];
         $accessToken = JWTAuth::claims($claims)->fromUser($user);
-
-        $session->revoked_at = now();
-        $session->save();
-
-        // Issue new refresh JWT
-        $newRid = (string) Str::uuid();
-        $expiresAt = now()->addDays((int) env('JWT_REFRESH_TTL_DAYS', 30));
-        $refreshTtlMinutes = ((int) env('JWT_REFRESH_TTL_DAYS', 30)) * 24 * 60;
-        $newPayload = JWTFactory::customClaims([
-            'typ' => 'refresh',
-            'jti' => $newRid,
-            'uid' => $user->id,
-        ])->setTTL($refreshTtlMinutes)->make();
-        $newPlainRefresh = JWTAuth::encode($newPayload)->get();
-        $newHash = $this->hashToken($newRid);
-
-        JwtSession::create([
-            'user_id' => $user->id,
-            'refresh_token' => $newHash,
-            'expires_at' => $expiresAt,
-            'user_agent' => $userAgent,
-            'ip_address' => $ip,
-        ]);
-
         return [
             'access_token' => $accessToken,
             'token_type' => 'bearer',
             'expires_in' => (int) config('jwt.ttl', 60) * 60,
-            'refresh_token' => $newPlainRefresh,
-            'refresh_expires_at' => $expiresAt,
         ];
     }
 
@@ -162,8 +173,22 @@ class AuthService
                     $hash = $this->hashToken($rid);
                     JwtSession::where('refresh_token', $hash)->update(['revoked_at' => now()]);
                 }
+            } catch (TokenExpiredException $e) {
+                // If expired, still decode payload to revoke session
+                $decoded = $this->decodeJwtPayload($refreshToken);
+                $rid = $decoded['jti'] ?? null;
+                if ($rid) {
+                    $hash = $this->hashToken($rid);
+                    JwtSession::where('refresh_token', $hash)->update(['revoked_at' => now()]);
+                }
             } catch (\Throwable $e) {
-                // ignore invalid refresh token
+                // For other invalid tokens, try a best-effort decode
+                $decoded = $this->decodeJwtPayload($refreshToken);
+                $rid = $decoded['jti'] ?? null;
+                if ($rid) {
+                    $hash = $this->hashToken($rid);
+                    JwtSession::where('refresh_token', $hash)->update(['revoked_at' => now()]);
+                }
             }
         }
     }

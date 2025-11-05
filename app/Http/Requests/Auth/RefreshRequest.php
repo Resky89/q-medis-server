@@ -14,7 +14,7 @@ class RefreshRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'refresh_token' => ['nullable', 'string'],
+            'refresh_token' => ['sometimes', 'string'],
         ];
     }
 }
